@@ -13,7 +13,11 @@ public class FloodingPlugin extends JavaPlugin {
 
     public ConfigAccessor config;
 
+    public VisualDebug visualDebug;
+
     public void onEnable(){
+
+        visualDebug = new VisualDebug(this);
 
         saveDefaultConfig();
 
