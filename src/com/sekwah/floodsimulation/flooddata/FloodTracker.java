@@ -1,5 +1,7 @@
 package com.sekwah.floodsimulation.flooddata;
 
+import com.sekwah.floodsimulation.FloodingPlugin;
+
 /**
  * Created by on 29/03/2016.
  *
@@ -11,4 +13,11 @@ package com.sekwah.floodsimulation.flooddata;
  * @author sekwah41
  */
 public class FloodTracker {
+
+    private FloodingPlugin plugin;
+
+    public FloodTracker(FloodingPlugin plugin){
+        this.plugin = plugin;
+    }
+
 }
