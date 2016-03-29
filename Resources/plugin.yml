@@ -1,0 +1,9 @@
+main: com.sekwah.advancedportals.AdvancedPortalsPlugin
+name: FloodSimulation
+version: 0.0.1
+author: sekwah41
+description: An advanced portals plugin for bukkit.
+commands:
+    flood:
+        description: Main command that all flood tools are under.
+        usage: /<command>
