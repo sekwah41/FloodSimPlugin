@@ -19,7 +19,8 @@ public class WaterData {
      * Also detect all connected water and calculate the waters sizes. Then get the top of each pool. May be useless though.
      *
      * New idea. Check if the block can see the sky(stops inside pools or stuff like toilets flooding houses xD)
+     *
+     * Also store some data as metadata for when the blocks come back.
      */
     public float fillAmout = 0;
-
 }
