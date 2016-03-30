@@ -26,7 +26,17 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String command, String[] args) {
-        return false;
+
+        if (args.length > 0) {
+            if (args[0].toLowerCase().equals("pos1")) {
+
+            }
+        }
+        else{
+            sender.sendMessage("\u00A79Flood\u00A7f> You need to type an argument.");
+        }
+
+        return true;
     }
 
     // Not needed but makes it easier to use.

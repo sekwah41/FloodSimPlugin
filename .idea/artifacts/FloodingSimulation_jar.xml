@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FloodingSimulation:jar">
+    <output-path>$USER_HOME$/Desktop/Sekwah41 plugin test/plugins/</output-path>
+    <root id="archive" name="FloodingSimulation.jar">
+      <element id="module-output" name="FloodingSimulation" />
+    </root>
+  </artifact>
+</component>

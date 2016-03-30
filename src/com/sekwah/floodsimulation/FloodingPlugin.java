@@ -1,19 +1,24 @@
 package com.sekwah.floodsimulation;
 
+import com.sekwah.floodsimulation.flooddata.FloodTracker;
+import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Created by on 29/03/2016.
  *
+ * TODO save the current area as a file or copy it somewhere else to revert it afterwards.
+ *
  * @author sekwah41
  */
 public class FloodingPlugin extends JavaPlugin {
 
-    public boolean simulatingFlood = false;
-
     public ConfigAccessor config;
 
     public VisualDebug visualDebug;
+
+    public FloodTracker floodTracker;
 
     public void onEnable(){
 
@@ -22,6 +27,10 @@ public class FloodingPlugin extends JavaPlugin {
         saveDefaultConfig();
 
         config = new ConfigAccessor(this, "config.yml");
+
+        FileConfiguration configAccess = config.getConfig();
+
+        floodTracker = new FloodTracker(this);
 
         new FloodCommand(this);
 
