@@ -1,10 +1,15 @@
 package com.sekwah.floodsimulation;
 
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,11 +34,32 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
 
         if (args.length > 0) {
             if (args[0].toLowerCase().equals("pos1")) {
-
+                Player player = (Player) sender;
+                Location loc = player.getLocation();
+                if(plugin.floodTracker.setPos(0, loc.getBlockX(), loc.getBlockZ())){
+                    sender.sendMessage("\u00A79Flood>\u00A7f Pos 1 Set.");
+                }
+                else{
+                    sender.sendMessage("\u00A79Flood>\u00A7f The region cannot be set right now.");
+                }
+            }
+            else if (args[0].toLowerCase().equals("pos2")) {
+                Player player = (Player) sender;
+                Location loc = player.getLocation();
+                if(plugin.floodTracker.setPos(1, loc.getBlockX(), loc.getBlockZ())){
+                    sender.sendMessage("\u00A79Flood>\u00A7f Pos 2 Set.");
+                }
+                else{
+                    sender.sendMessage("\u00A79Flood>\u00A7f The region cannot be set right now.");
+                }
+            }
+            else if (args[0].toLowerCase().equals("calculate")) {
+                sender.sendMessage("\u00A79Flood>\u00A7f Calculating flood data, please wait.");
+                plugin.floodTracker.calculate();
             }
         }
         else{
-            sender.sendMessage("\u00A79Flood\u00A7f> You need to type an argument.");
+            sender.sendMessage("\u00A79Flood>\u00A7f You need to type an argument.");
         }
 
         return true;
@@ -42,6 +68,11 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
     // Not needed but makes it easier to use.
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String command, String[] args) {
-        return null;
+        List<String> autoComplete = new ArrayList<String>();
+        if (args.length == 1) {
+            autoComplete.addAll(Arrays.asList("pos1", "pos2", "calculate"));
+        }
+        Collections.sort(autoComplete);
+        return autoComplete;
     }
 }

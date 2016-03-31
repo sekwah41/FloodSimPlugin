@@ -34,6 +34,8 @@ public class FloodingPlugin extends JavaPlugin {
 
         new FloodCommand(this);
 
+        new Listeners(this);
+
         this.getServer().getConsoleSender().sendMessage("\u00A7aFlood simulation has been enabled.");
     }
 

@@ -27,7 +27,7 @@ public class FloodTracker {
      * e.g. natural water flow.
      *
      */
-    public boolean simulating = false;
+    public boolean simulating = true;
 
     public boolean lockChanges = false;
 
@@ -37,6 +37,13 @@ public class FloodTracker {
         this.plugin = plugin;
     }
 
+    /**
+     * Sets the locations for the regions
+     * @param posID 0 is pos1 1 is pos2
+     * @param posX
+     * @param poxZ
+     * @return
+     */
     public boolean setPos(int posID, int posX, int poxZ){
         if(simulating){
             return false;
@@ -45,9 +52,39 @@ public class FloodTracker {
         return true;
     }
 
-    public void calculate(){
-        lockChanges = true;
 
+    public boolean isPosSet(int posID){
+        return regionPoints[posID] != null;
     }
 
+    /**
+     * Sorts pos 1 and 2 to min and max values for easier handling.
+     * @return
+     */
+    public boolean rearrangeRegion(){
+        if(regionPoints[0] != null && regionPoints[1] != null){
+            int maxX = Math.max(regionPoints[0].posX, regionPoints[1].posX);
+            int minX = Math.min(regionPoints[0].posX, regionPoints[1].posX);
+
+            int maxZ = Math.max(regionPoints[0].posZ, regionPoints[1].posZ);
+            int minZ = Math.min(regionPoints[0].posZ, regionPoints[1].posZ);
+
+            regionPoints[0] = new ChunkPos(minX, minZ);
+            regionPoints[1] = new ChunkPos(maxX, maxZ);
+
+            return true;
+        }
+        return false;
+    }
+
+    public void calculate(){
+        lockChanges = true;
+        rearrangeRegion();
+        analyzeWater();
+    }
+
+    public boolean analyzeWater(){
+        // Return false if no water flood sources are calculated.
+        return true;
+    }
 }
