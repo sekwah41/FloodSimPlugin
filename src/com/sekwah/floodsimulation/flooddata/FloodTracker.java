@@ -1,7 +1,8 @@
 package com.sekwah.floodsimulation.flooddata;
 
 import com.sekwah.floodsimulation.FloodingPlugin;
-import net.minecraft.server.v1_8_R2.Block;
+import com.sekwah.floodsimulation.Pressures;
+import org.bukkit.block.Block;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,8 @@ import java.util.List;
  */
 public class FloodTracker {
 
+    private final Pressures pressureVal;
+
     private FloodingPlugin plugin;
 
     public ChunkPos[] regionPoints = {null, null};
@@ -31,10 +34,29 @@ public class FloodTracker {
 
     public boolean lockChanges = false;
 
-    public List<Block> waterBlocks = new ArrayList<Block>();
+    public List<Block> activeWaterBlocks = new ArrayList<Block>();
+
+    // Create a thread and try multithreading the block updates. Other than players placing and breaking blocks nothing
+    // should really change.
 
     public FloodTracker(FloodingPlugin plugin){
         this.plugin = plugin;
+        this.pressureVal = new Pressures();
+    }
+
+    /**
+     * Typically because the block has been full for a few ticks so should be fine in most cases.
+     *
+     * @return if block was added successfully.
+     */
+    public boolean addActiveBlock(Block waterBlock){
+        if(activeWaterBlocks.contains(waterBlock)){
+            return false;
+        }
+        else{
+            activeWaterBlocks.add(waterBlock);
+            return true;
+        }
     }
 
     /**

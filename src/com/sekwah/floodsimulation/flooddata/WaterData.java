@@ -8,6 +8,8 @@ package com.sekwah.floodsimulation.flooddata;
 public class WaterData {
 
     /**
+     * From 0 to 100
+     *
      * Rises to 100. If it is close to 100 or overflowing change to source block and stop tracking.
      * though make the tolerance really strict and the block spread strict to make sure there is a level plane at the moment in time.
      * Also build a large glass border or detect the edge of the flood region. Also dont make the source blocks keep pouring and pouring.

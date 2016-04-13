@@ -4,7 +4,10 @@ import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 
 /**
  * Created by on 30/03/2016.
@@ -40,6 +43,21 @@ public class Listeners implements Listener {
         }
 
         // TODO Stop natural water flow in the area if currently flooding.
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onBlockBreak(BlockBreakEvent event) {
+
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onBlockPlace(BlockPlaceEvent event) {
+
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onExplosion(EntityExplodeEvent event) {
+
     }
 
 }
