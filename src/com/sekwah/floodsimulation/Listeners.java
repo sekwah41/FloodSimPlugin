@@ -38,7 +38,8 @@ public class Listeners implements Listener {
         Block block = event.getBlock();
 
         // Limit it to the specific region possibly.
-        if(plugin.floodTracker.simulating){
+        plugin.getLogger().info(String.valueOf(plugin.floodTracker.inRegion(block.getLocation())));
+        if(plugin.floodTracker.inRegion(block.getLocation())){
             event.setCancelled(true);
         }
 

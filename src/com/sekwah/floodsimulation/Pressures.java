@@ -17,6 +17,8 @@ import java.util.Map;
  * Or activate the setblock command with the destroy tag.
  * Actually use common sense and see how the destroy tag works...
  *
+ * Base it off the blocks size at the end of an update once it has tried pushing in other directions. If its still at 100
+ * then stuff like glass will shatter as it obviously has nowhere else to go.
  *
  * Extracted from CommandSetBlock
  * if (args[5].equals("destroy"))
