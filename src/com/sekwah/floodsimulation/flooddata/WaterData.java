@@ -5,7 +5,7 @@ package com.sekwah.floodsimulation.flooddata;
  *
  * @author sekwah41
  */
-public class WaterData {
+public class WaterData implements Comparable<WaterData> {
 
     /**
      * From 0 to 100
@@ -28,8 +28,18 @@ public class WaterData {
 
     public FloodPos pos;
 
+    /**
+     * If it is a new block it will set the current block to it.
+     */
+    public boolean newBlock = true;
+
     public WaterData(FloodPos pos, float fillAmount){
         this.level = fillAmount;
         this.pos = pos;
+    }
+
+    @Override
+    public int compareTo(WaterData waterData) {
+        return (int) (this.level - waterData.level);
     }
 }
