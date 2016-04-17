@@ -53,14 +53,17 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("\u00A79Flood>\u00A7f The region cannot be set right now.");
                 }
             }
-            /*else if (args[0].equalsIgnoreCase("calculate")) {
-                //sender.sendMessage("\u00A79Flood>\u00A7f Calculating flood data, please wait.");
-                plugin.floodTracker.calculate();
-            }*/
+            else if (args[0].equalsIgnoreCase("visualise")) {
+                sender.sendMessage("\u00A79Flood>\u00A7f Showing region data.");
+                plugin.floodTracker.visualise();
+            }
             else if (args[0].equalsIgnoreCase("simulate") || args[0].equalsIgnoreCase("start")) {
                 if(!plugin.floodTracker.start()){
                     sender.sendMessage("\u00A79Flood>\u00A7f Flood is already being simulated.");
                 }
+            }
+            else{
+                sender.sendMessage("\u00A79Flood>\u00A7f Invalid command.");
             }
         }
         else{
@@ -75,9 +78,14 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String command, String[] args) {
         List<String> autoComplete = new ArrayList<String>();
         if (args.length == 1) {
-            autoComplete.addAll(Arrays.asList("pos1", "pos2", /*"calculate",*/ "simulate", "start"));
+            autoComplete.addAll(Arrays.asList("pos1", "pos2", "visualise", "simulate", "start"));
         }
         Collections.sort(autoComplete);
+        for (Object result : autoComplete.toArray()) {
+            if (!result.toString().startsWith(args[args.length - 1])) {
+                autoComplete.remove(result);
+            }
+        }
         return autoComplete;
     }
 }

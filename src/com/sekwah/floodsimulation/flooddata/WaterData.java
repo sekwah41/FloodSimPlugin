@@ -24,5 +24,12 @@ public class WaterData {
      *
      * Also store some data as metadata for when the blocks come back.
      */
-    public float fillAmout = 0;
+    public float level = 0;
+
+    public FloodPos pos;
+
+    public WaterData(FloodPos pos, float fillAmount){
+        this.level = fillAmount;
+        this.pos = pos;
+    }
 }

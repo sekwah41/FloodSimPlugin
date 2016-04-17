@@ -1,11 +1,13 @@
 package com.sekwah.floodsimulation;
 
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
@@ -38,12 +40,23 @@ public class Listeners implements Listener {
         Block block = event.getBlock();
 
         // Limit it to the specific region possibly.
-        plugin.getLogger().info(String.valueOf(plugin.floodTracker.inRegion(block.getLocation())));
-        if(plugin.floodTracker.inRegion(block.getLocation())){
+        if(plugin.floodTracker.inRegion(block.getLocation()) || plugin.floodTracker.inRegion(blockTo.getLocation())){
             event.setCancelled(true);
         }
 
         // TODO Stop natural water flow in the area if currently flooding.
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+        Block block = event.getBlock();
+        Material material = block.getType();
+        //System.out.println(material);
+        if (material == Material.STATIONARY_WATER) {
+            if(plugin.floodTracker.inRegion(block.getLocation()) || plugin.floodTracker.inRegion(block.getLocation())) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)

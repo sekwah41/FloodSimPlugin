@@ -2,13 +2,17 @@ package com.sekwah.floodsimulation.flooddata;
 
 import com.sekwah.floodsimulation.FloodingPlugin;
 import com.sekwah.floodsimulation.Pressures;
+import com.sun.scenario.effect.Flood;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by on 29/03/2016.
@@ -40,7 +44,12 @@ public class FloodTracker {
 
     public Material infWaterSource = Material.LAPIS_BLOCK;
 
-    public boolean debug = true;
+    private float waterThreshold = 100f / 8f;
+
+    private boolean debug = true;
+
+    // Update frequency in ticks(Keep tracked to the world).
+    private int updateFrequency = 5;
 
     /**
      * Stores if the plugin is simulating but other than it tracking the code it is used as a trigger to block changes
@@ -51,7 +60,17 @@ public class FloodTracker {
 
     public boolean lockChanges = false;
 
-    public List<Block> activeWaterBlocks = new ArrayList<Block>();
+    private long lastUpdateTick = 0;
+
+    /**
+     * Use metadata on blocks to store where in the list their active data is. That or use a hashmap.
+     */
+
+    private List<FloodSource> floodSources = new ArrayList<FloodSource>();
+
+    private Map<Block, WaterData> floodData = new HashMap<Block, WaterData>();
+
+    private List<WaterData> activeWaterBlocks = new ArrayList<WaterData>();
 
     // Create a thread and try multithreading the block updates. Other than players placing and breaking blocks nothing
     // should really change.
@@ -66,7 +85,7 @@ public class FloodTracker {
      *
      * @return if block was added successfully.
      */
-    public boolean addActiveBlock(Block waterBlock){
+    public boolean addActiveBlock(WaterData waterBlock){
         if(this.activeWaterBlocks.contains(waterBlock)){
             return false;
         }
@@ -135,8 +154,6 @@ public class FloodTracker {
             this.regionPoints[0] = new ChunkPos(minX, minZ);
             this.regionPoints[1] = new ChunkPos(maxX, maxZ);
 
-            this.plugin.visualDebug.showRegion();
-
             return true;
         }
         return false;
@@ -154,7 +171,23 @@ public class FloodTracker {
         });
     }
 
-    public boolean analyzeWater(){
+    /**
+     * Shows how the plugin sees the region before starting.
+     */
+    public void visualise(){
+        lockChanges = true;
+        this.rearrangeRegion();
+        this.plugin.visualDebug.showRegion();
+        //this.analyzeWater();
+        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+            @Override
+            public void run() {
+                visualRegionData();
+            }
+        });
+    }
+
+    public boolean visualRegionData(){
         // Return false if no water flood sources are calculated.
         ArrayList<VisuBlock> blocks = new ArrayList<VisuBlock>();
 
@@ -165,16 +198,26 @@ public class FloodTracker {
                     Block block = this.currentWorld.getBlockAt(x,y,z);
                     if(block.getType() == Material.STATIONARY_WATER){
                         //this.plugin.getLogger().info(String.valueOf(block.getData()));
-                        System.out.println(block.getData());
                         if (block.getData() == (byte) 0) {
-                            blocks.add(new VisuBlock(new Location(plugin.floodTracker.currentWorld, x,y,z), Material.STAINED_GLASS, (byte) 4));
+                            Block blockAbove = block.getRelative(BlockFace.UP);
+                            if(blockAbove.getType() == Material.STATIONARY_WATER && blockAbove.getData() == (byte) 0){
+                                blocks.add(new VisuBlock(new Location(plugin.floodTracker.currentWorld, x,y,z), Material.STAINED_GLASS, (byte) 5));
+                            }
+                            else{
+                                blocks.add(new VisuBlock(new Location(plugin.floodTracker.currentWorld, x,y,z), Material.STAINED_GLASS, (byte) 4));
+                            }
                         }
                         else{
-                            blocks.add(new VisuBlock(new Location(plugin.floodTracker.currentWorld, x,y,z), Material.WATER, (byte) 7));
+                            blocks.add(new VisuBlock(new Location(plugin.floodTracker.currentWorld, x,y,z), Material.STAINED_GLASS, (byte) 7));
                         }
                     }
+                    // Be treated like a full block, im yet to see this actually be found though.
                     else if(block.getType() == Material.WATER){
                         blocks.add(new VisuBlock(new Location(plugin.floodTracker.currentWorld, x,y,z), Material.STAINED_GLASS, (byte) 2));
+                    }
+                    else if(block.getType() == infWaterSource){
+                        blocks.add(new VisuBlock(new Location(plugin.floodTracker.currentWorld, x,y,z), Material.STAINED_GLASS, (byte) 9));
+
                     }
                     //
                 }
@@ -184,12 +227,68 @@ public class FloodTracker {
         return true;
     }
 
+    public boolean analyzeWater(){
+        // Return false if no water flood sources are calculated.
+
+        int worldHeight = this.currentWorld.getMaxHeight();
+        for(int x = this.regionPoints[0].posX; x <= this.regionPoints[1].posX; x++){
+            for(int z = this.regionPoints[0].posZ; z <= this.regionPoints[1].posZ; z++){
+                for(int y = 0; y <= worldHeight; y++){
+                    Block block = this.currentWorld.getBlockAt(x,y,z);
+                    if(block.getType() == Material.STATIONARY_WATER){
+                        //this.plugin.getLogger().info(String.valueOf(block.getData()));
+                        if (block.getData() == (byte) 0) {
+                            Block blockAbove = block.getRelative(BlockFace.UP);
+                            if(blockAbove.getType() == Material.STATIONARY_WATER && blockAbove.getData() == (byte) 0){
+                                activeWaterBlocks.add(new WaterData(new FloodPos(x,y,z), 100));
+                            }
+                            else{
+                                activeWaterBlocks.add(new WaterData(new FloodPos(x,y,z), 100));
+                                floodSources.add(new FloodSource(new FloodPos(x,y,z), false));
+                            }
+                        }
+                        else{
+                            addWater(new FloodPos(x,y,z), ((8 - block.getData()) * waterThreshold), block);
+                            //activeWaterBlocks.add(new WaterData(new FloodPos(x,y,z), ((8 - block.getData()) * waterThreshold)));
+                        }
+                    }
+                    // Be treated like a full block, im yet to see this actually be found though.
+                    else if(block.getType() == Material.WATER){
+                        activeWaterBlocks.add(new WaterData(new FloodPos(x,y,z), 100));
+                        floodSources.add(new FloodSource(new FloodPos(x,y,z), false));
+                    }
+                    else if(block.getType() == infWaterSource){
+                        floodSources.add(new FloodSource(new FloodPos(x,y,z), true));
+                    }
+                    //
+                }
+            }
+        }
+        return true;
+    }
+
+    public void addWater(FloodPos pos, float level, Block block){
+        WaterData waterData = new WaterData(pos, level);
+        floodData.put(block, waterData);
+    }
+
+    public void removeWater(WaterData waterData, Block block){
+        activeWaterBlocks.remove(waterData);
+        floodData.remove(block);
+    }
+
     /**
      * Start the flood
      */
     public boolean start() {
         if(!this.simulating){
+            this.rearrangeRegion();
+            plugin.getServer().broadcastMessage("\u00A79Flood>\u00A7f Flood simulation started.");
             this.simulating = true;
+            this.analyzeWater();
+            this.lastUpdateTick = currentWorld.getFullTime();
+
+            update();
 
             return true;
         }
@@ -197,5 +296,102 @@ public class FloodTracker {
             return false;
         }
 
+    }
+
+    /**
+     * Rise the flood levels and add more water(raise flood level if current flood block is full and can move up.
+     *
+     * @return if the flood could be risen.
+     */
+    public boolean raiseFlood(){
+        return true;
+    }
+
+
+    /**
+     * Updates all the water
+     * @return if there are changes made.
+     */
+    public boolean update(){
+
+        plugin.getLogger().info("Flood Update");
+        updateBlocks();
+
+        plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+            @Override
+            public void run() {
+                simulateWater();
+
+                long tickDelay = updateFrequency - (lastUpdateTick - currentWorld.getFullTime());
+
+                if(tickDelay > 0){
+                    plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
+                        @Override
+                        public void run() {
+                            update();
+                        }
+                    }, tickDelay);
+                }
+                else{
+                    plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+                        @Override
+                        public void run() {
+                            update();
+                        }
+                    });
+                }
+            }
+        });
+
+        return true;
+    }
+
+    private void simulateWater() {
+        Object[] activeArray = activeWaterBlocks.toArray();
+        for(int i = activeArray.length - 1; i >= 0; i--){
+            WaterData waterData = (WaterData) activeArray[i];
+            if(waterData.level > 0){
+                updateBlock(waterData);
+            }
+        }
+    }
+
+    /**
+     * Block update code
+     * @param waterData
+     */
+    private void updateBlock(WaterData waterData) {
+        FloodPos pos = waterData.pos;
+        Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
+        //Block blockBelow =
+    }
+
+    public void updateBlocks() {
+        Object[] activeWater = activeWaterBlocks.toArray();
+        for(Object waterDataObj : activeWater){
+            WaterData waterData = (WaterData) waterDataObj;
+            FloodPos pos = waterData.pos;
+            Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
+            if(block.getType() == Material.STATIONARY_WATER){
+                double waterLevel = 8 - Math.ceil(waterData.level / this.waterThreshold);
+                if(waterLevel >= 8){
+                    block.breakNaturally();
+                    removeWater(waterData, block);
+                }
+                else {
+                    if (waterLevel < 0) {
+                        waterLevel = 0;
+                    }
+
+                    if (waterLevel != block.getData()) {
+                        block.setData((byte) waterLevel);
+                    }
+                }
+            }
+            else{
+                removeWater(waterData, block);
+                plugin.getLogger().info("A non water block seems to be in the water data.");
+            }
+        }
     }
 }

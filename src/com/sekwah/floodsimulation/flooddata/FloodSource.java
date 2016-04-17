@@ -11,6 +11,16 @@ package com.sekwah.floodsimulation.flooddata;
  */
 public class FloodSource {
 
+    /**
+     * Is a perma source if the block is a lapis, could convert to water but it makes it easier to realise whats going on.
+     */
+    public boolean permaSource = false;
 
+    public FloodPos pos;
+
+    public FloodSource(FloodPos pos, boolean permaSource){
+        this.pos = pos;
+        this.permaSource = permaSource;
+    }
 
 }
