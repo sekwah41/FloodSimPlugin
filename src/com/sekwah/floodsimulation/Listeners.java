@@ -75,7 +75,7 @@ public class Listeners implements Listener {
         //System.out.println(material);
         if (material.toString().contains("WATER")) {
             if(plugin.floodTracker.inRegion(block.getLocation()) || plugin.floodTracker.inRegion(block.getLocation())) {
-                plugin.floodTracker.addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), 99, block);
+                plugin.floodTracker.addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), plugin.floodTracker.waterStartLevel, block);
             }
         }
 

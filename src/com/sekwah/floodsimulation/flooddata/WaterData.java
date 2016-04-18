@@ -47,6 +47,17 @@ public class WaterData implements Comparable<WaterData> {
         return (int) (this.level - waterData.level);
     }
 
+    public void change(float amount){
+        if(amount == 0){
+            return;
+        }
+        this.level += amount;
+        hasChanged = true;
+        if(this.level > 50 && amount > 0.5){
+            inactiveTicks = 0;
+        }
+    }
+
     public void change(){
         hasChanged = true;
         inactiveTicks = 0;

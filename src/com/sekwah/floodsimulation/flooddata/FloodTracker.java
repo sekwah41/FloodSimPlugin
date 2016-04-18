@@ -64,6 +64,9 @@ public class FloodTracker {
 
     private long lastUpdateTick = 0;
 
+    // Stops some blocks like glass breaking too easily.
+    public float waterStartLevel = 98;
+
     /**
      * Percentage that flows into the next blow, e.g. 100 and 50 will have 12.5 flow into the next if it was 0.25f
      *
@@ -250,10 +253,10 @@ public class FloodTracker {
                             Block blockAbove = block.getRelative(BlockFace.UP);
                             if(blockAbove.getType() == Material.STATIONARY_WATER && blockAbove.getData() == (byte) 0){
                                 //activeWaterBlocks.add(new WaterData(new FloodPos(x,y,z), 100));
-                                addWater(new FloodPos(x,y,z), 99, block);
+                                addWater(new FloodPos(x,y,z), this.waterStartLevel, block);
                             }
                             else{
-                                addWaterSource(new FloodPos(x,y,z), 99, block, false);
+                                addWaterSource(new FloodPos(x,y,z), this.waterStartLevel, block, false);
                             }
                         }
                         else{
@@ -263,7 +266,7 @@ public class FloodTracker {
                     }
                     // Be treated like a full block, im yet to see this actually be found though.
                     else if(block.getType() == Material.WATER){
-                        addWaterSource(new FloodPos(x,y,z), 99, block, false);
+                        addWaterSource(new FloodPos(x,y,z), this.waterStartLevel, block, false);
                     }
                     else if(block.getType() == infWaterSource){
                         floodSources.add(new FloodSource(new FloodPos(x,y,z), true));
@@ -452,10 +455,7 @@ public class FloodTracker {
         //Block blockBelow =
         Block below = block.getRelative(BlockFace.DOWN);
         float flow = flowToBlock(below, waterData.level, true, waterData.inactiveTicks);
-        if(flow != 0){
-            waterData.change();
-        }
-        waterData.level -= flow;
+        waterData.change(-flow);
 
         Block[] sideBlocks = {block.getRelative(BlockFace.NORTH),block.getRelative(BlockFace.SOUTH),block.getRelative(BlockFace.EAST),
             block.getRelative(BlockFace.WEST)};
@@ -469,9 +469,7 @@ public class FloodTracker {
         for(int i = 0; i < 4; i++){
             if(waterData.level > 5){
                 flow = flowToBlock(sideBlocks[i], waterData.level, false, waterData.inactiveTicks);
-                if(flow != 0){
-                    waterData.change();
-                }
+                waterData.change(-flow);
                 waterData.level -= flow;
             }
             else if(waterData.inactiveTicks > 10/* && below.getType() != Material.STATIONARY_WATER*/){
