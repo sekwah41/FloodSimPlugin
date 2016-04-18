@@ -2,15 +2,11 @@ package com.sekwah.floodsimulation.flooddata;
 
 import com.sekwah.floodsimulation.FloodingPlugin;
 import com.sekwah.floodsimulation.Pressures;
-import com.sun.scenario.effect.Flood;
-import net.minecraft.server.v1_8_R3.BlockPosition;
-import net.minecraft.server.v1_8_R3.PacketPlayOutWorldEvent;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -65,7 +61,7 @@ public class FloodTracker {
     private long lastUpdateTick = 0;
 
     // Stops some blocks like glass breaking too easily.
-    public float waterStartLevel = 98;
+    public float waterStartLevel = 98f;
 
     /**
      * Percentage that flows into the next blow, e.g. 100 and 50 will have 12.5 flow into the next if it was 0.25f
@@ -414,7 +410,7 @@ public class FloodTracker {
                 if(waterData.newBlock){
                     if(!isWater){
                         for(Player player: plugin.getServer().getOnlinePlayers()){
-                            sendBlockBreakParticles(player, block.getType(), new BlockPosition(block.getX(), block.getY(), block.getZ()));
+                            plugin.nmsAccess.sendBlockBreakParticles(player, block.getType(), block.getLocation());
                         }
                     }
                     block.setType(Material.STATIONARY_WATER);
@@ -470,7 +466,7 @@ public class FloodTracker {
             if(waterData.level > 5){
                 flow = flowToBlock(sideBlocks[i], waterData.level, false, waterData.inactiveTicks);
                 waterData.change(-flow);
-                waterData.level -= flow;
+                //waterData.level -= flow;
             }
             else if(waterData.inactiveTicks > 10/* && below.getType() != Material.STATIONARY_WATER*/){
                 waterData.level = 0;
@@ -536,16 +532,10 @@ public class FloodTracker {
         else{
             float flowAmount = (amount - waterData.level) * flowRatio;
             //if(flowAmount > 5){
-                waterData.level += flowAmount;
+                waterData.change(flowAmount);
                 return flowAmount;
             //}
         }
         //return 0;
-    }
-
-    public void sendBlockBreakParticles(Player p, Material mat, BlockPosition pos)
-    {
-        PacketPlayOutWorldEvent packet = new PacketPlayOutWorldEvent(2001, pos, mat.getId(), false);
-        ((CraftPlayer)p).getHandle().playerConnection.sendPacket(packet);
     }
 }
