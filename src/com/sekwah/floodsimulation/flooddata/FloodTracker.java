@@ -3,11 +3,15 @@ package com.sekwah.floodsimulation.flooddata;
 import com.sekwah.floodsimulation.FloodingPlugin;
 import com.sekwah.floodsimulation.Pressures;
 import com.sun.scenario.effect.Flood;
+import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.PacketPlayOutWorldEvent;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -22,6 +26,7 @@ import java.util.*;
  * Water .data 0 = source block and 7 = almost empty.
  * Use this to visualise if a block is very full or not.
  *
+ *
  * Has details on checking the server time.
  * https://bukkit.org/threads/solved-counting-ticks.44950/
  *
@@ -29,7 +34,7 @@ import java.util.*;
  */
 public class FloodTracker {
 
-    private final Pressures pressureVal;
+    private final Pressures pressures;
 
     private FloodingPlugin plugin;
 
@@ -64,7 +69,7 @@ public class FloodTracker {
      *
      * 1 would mean it all goes and that would give some funny results.
      */
-    private float flowRatio = 0.4f;
+    private float flowRatio = 0.5f;
 
     /**
      * Use metadata on blocks to store where in the list their active data is. That or use a hashmap.
@@ -81,7 +86,7 @@ public class FloodTracker {
 
     public FloodTracker(FloodingPlugin plugin){
         this.plugin = plugin;
-        this.pressureVal = new Pressures();
+        this.pressures = new Pressures();
     }
 
     /**
@@ -245,10 +250,10 @@ public class FloodTracker {
                             Block blockAbove = block.getRelative(BlockFace.UP);
                             if(blockAbove.getType() == Material.STATIONARY_WATER && blockAbove.getData() == (byte) 0){
                                 //activeWaterBlocks.add(new WaterData(new FloodPos(x,y,z), 100));
-                                addWater(new FloodPos(x,y,z), 100, block);
+                                addWater(new FloodPos(x,y,z), 99, block);
                             }
                             else{
-                                addWaterSource(new FloodPos(x,y,z), 100, block, false);
+                                addWaterSource(new FloodPos(x,y,z), 99, block, false);
                             }
                         }
                         else{
@@ -258,7 +263,7 @@ public class FloodTracker {
                     }
                     // Be treated like a full block, im yet to see this actually be found though.
                     else if(block.getType() == Material.WATER){
-                        addWaterSource(new FloodPos(x,y,z), 100, block, false);
+                        addWaterSource(new FloodPos(x,y,z), 99, block, false);
                     }
                     else if(block.getType() == infWaterSource){
                         floodSources.add(new FloodSource(new FloodPos(x,y,z), true));
@@ -376,7 +381,7 @@ public class FloodTracker {
                             block.getRelative(BlockFace.WEST)};
 
                     for(int i = 0; i < 4; i++){
-                        flowToBlock(sideBlocks[i], 100, true);
+                        flowToBlock(sideBlocks[i], 100, true, 0);
                         // System.out.println(i);
                         //System.out.println(flow);
                     }
@@ -401,8 +406,14 @@ public class FloodTracker {
             WaterData waterData = (WaterData) waterDataObj;
             FloodPos pos = waterData.pos;
             Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
-            if(block.getType() == Material.STATIONARY_WATER || block.getType() == Material.WATER || waterData.newBlock){
+            boolean isWater = block.getType() == Material.STATIONARY_WATER || block.getType() == Material.WATER;
+            if(isWater || waterData.newBlock){
                 if(waterData.newBlock){
+                    if(!isWater){
+                        for(Player player: plugin.getServer().getOnlinePlayers()){
+                            sendBlockBreakParticles(player, block.getType(), new BlockPosition(block.getX(), block.getY(), block.getZ()));
+                        }
+                    }
                     block.setType(Material.STATIONARY_WATER);
                     waterData.newBlock = false;
                 }
@@ -421,6 +432,8 @@ public class FloodTracker {
                         block.setData((byte) waterLevel);
                     }
                 }
+                waterData.hasChanged = false;
+                waterData.inactiveTicks++;
             }
             else{
                 removeWater(waterData, block);
@@ -437,7 +450,11 @@ public class FloodTracker {
         FloodPos pos = waterData.pos;
         Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
         //Block blockBelow =
-        float flow = flowToBlock(block.getRelative(BlockFace.DOWN), waterData.level, true);
+        Block below = block.getRelative(BlockFace.DOWN);
+        float flow = flowToBlock(below, waterData.level, true, waterData.inactiveTicks);
+        if(flow != 0){
+            waterData.change();
+        }
         waterData.level -= flow;
 
         Block[] sideBlocks = {block.getRelative(BlockFace.NORTH),block.getRelative(BlockFace.SOUTH),block.getRelative(BlockFace.EAST),
@@ -451,8 +468,14 @@ public class FloodTracker {
 
         for(int i = 0; i < 4; i++){
             if(waterData.level > 5){
-                flow = flowToBlock(sideBlocks[i], waterData.level, false);
+                flow = flowToBlock(sideBlocks[i], waterData.level, false, waterData.inactiveTicks);
+                if(flow != 0){
+                    waterData.change();
+                }
                 waterData.level -= flow;
+            }
+            else if(waterData.inactiveTicks > 10/* && below.getType() != Material.STATIONARY_WATER*/){
+                waterData.level = 0;
             }
            // System.out.println(i);
             //System.out.println(flow);
@@ -472,13 +495,22 @@ public class FloodTracker {
     /**
      * Tries to flow an amount into a block.
      *
+     * TODO to combat some of the linear flowing try also pulling from blocks with a higher fill value. this would speed
+     * up linear flowing between active blocks but not to new air blocks(would possiby create better vertical flow).
+     *
+     * Also possible check nearby for blocks to the side flowing down and/or drain if below a certain amount for too long.
+     *
      * @return the amout that has flowed into the block.
      */
-    public float flowToBlock(Block block, float amount, boolean down){
+    public float flowToBlock(Block block, float amount, boolean down, int inactiveTicks){
         WaterData waterData = floodData.get(block);
         if(waterData == null){
             // TODO add the pressure code here.
+            Integer pressureVal = pressures.pressureValues.get(block.getType());
             if(block.getType() == Material.AIR){
+                waterData = addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), 0, block);
+            }
+            else if(pressureVal != null && pressureVal <= amount && (pressureVal > 75 && inactiveTicks > 2)){
                 waterData = addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), 0, block);
             }
             else{
@@ -488,6 +520,9 @@ public class FloodTracker {
         float amountRemaining = 100 - waterData.level;
         if(down){
             // Max flow down amount(stops instant 1 block flowing down)
+            if(amount >= 20){
+                amount = 80;
+            }
             if(amount >= 80){
                 amount = 80;
             }
@@ -508,5 +543,11 @@ public class FloodTracker {
             //}
         }
         //return 0;
+    }
+
+    public void sendBlockBreakParticles(Player p, Material mat, BlockPosition pos)
+    {
+        PacketPlayOutWorldEvent packet = new PacketPlayOutWorldEvent(2001, pos, mat.getId(), false);
+        ((CraftPlayer)p).getHandle().playerConnection.sendPacket(packet);
     }
 }

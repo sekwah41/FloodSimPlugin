@@ -28,10 +28,14 @@ public class WaterData implements Comparable<WaterData> {
 
     public FloodPos pos;
 
+    public boolean hasChanged = false;
+
     /**
      * If it is a new block it will set the current block to it.
      */
     public boolean newBlock = true;
+
+    public int inactiveTicks = 0;
 
     public WaterData(FloodPos pos, float fillAmount){
         this.level = fillAmount;
@@ -41,5 +45,10 @@ public class WaterData implements Comparable<WaterData> {
     @Override
     public int compareTo(WaterData waterData) {
         return (int) (this.level - waterData.level);
+    }
+
+    public void change(){
+        hasChanged = true;
+        inactiveTicks = 0;
     }
 }

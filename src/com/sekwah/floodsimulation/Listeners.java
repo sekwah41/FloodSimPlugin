@@ -16,6 +16,8 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 /**
  * Created by on 30/03/2016.
  *
+ * TODO listen to the place and destroy
+ *
  * @author sekwah41
  */
 public class Listeners implements Listener {
@@ -73,7 +75,7 @@ public class Listeners implements Listener {
         //System.out.println(material);
         if (material.toString().contains("WATER")) {
             if(plugin.floodTracker.inRegion(block.getLocation()) || plugin.floodTracker.inRegion(block.getLocation())) {
-                plugin.floodTracker.addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), 100, block);
+                plugin.floodTracker.addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), 99, block);
             }
         }
 
