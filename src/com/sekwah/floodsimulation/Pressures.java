@@ -44,9 +44,11 @@ public class Pressures {
 
     public Pressures(){
         pressureValues.put(Material.LONG_GRASS, 12);
+        pressureValues.put(Material.DOUBLE_PLANT, 12);
         pressureValues.put(Material.RED_ROSE, 12);
         pressureValues.put(Material.YELLOW_FLOWER, 12);
         pressureValues.put(Material.DEAD_BUSH, 12);
+        pressureValues.put(Material.LADDER, 50);
         pressureValues.put(Material.GLASS, 99);
         pressureValues.put(Material.THIN_GLASS, 80);
         pressureValues.put(Material.STAINED_GLASS, 99);

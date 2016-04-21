@@ -419,7 +419,8 @@ public class FloodTracker {
 
                 double waterLevel = 8 - Math.ceil(waterData.level / this.waterThreshold);
                 if(waterLevel >= 8){
-                    block.breakNaturally();
+                    //block.breakNaturally();
+                    block.setType(Material.AIR);
                     removeWater(waterData, block);
                 }
                 else {
@@ -504,7 +505,7 @@ public class FloodTracker {
             if(block.getType() == Material.AIR){
                 waterData = addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), 0, block);
             }
-            else if(pressureVal != null && pressureVal <= amount && (pressureVal > 75 && inactiveTicks > 2)){
+            else if(pressureVal != null && pressureVal <= amount && ((pressureVal > 75 && inactiveTicks > 2) || pressureVal <= 75)){
                 waterData = addWater(new FloodPos(block.getX(), block.getY(), block.getZ()), 0, block);
             }
             else{
