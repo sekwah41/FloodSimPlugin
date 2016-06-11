@@ -20,6 +20,8 @@ public class FloodingPlugin extends JavaPlugin {
 
     public VisualDebug visualDebug;
 
+    public boolean debug = false;
+
     public NMS nmsAccess;
 
     public FloodTracker floodTracker;
@@ -53,6 +55,8 @@ public class FloodingPlugin extends JavaPlugin {
                 this.setEnabled(false);
             }
             this.getLogger().info("Using compat file v:" + version);
+
+            this.getServer().getConsoleSender().sendMessage("\u00A7aFlood simulation has been enabled.");
         } catch (ClassNotFoundException e) {
             this.getLogger().severe("Something went wrong, the version of bukkit you are using does not seem to have a compat file v:" + version);
             this.setEnabled(false);
@@ -62,8 +66,6 @@ public class FloodingPlugin extends JavaPlugin {
              e.printStackTrace();
             this.setEnabled(false);
         }
-
-        this.getServer().getConsoleSender().sendMessage("\u00A7aFlood simulation has been enabled.");
     }
 
     public void onDisable(){

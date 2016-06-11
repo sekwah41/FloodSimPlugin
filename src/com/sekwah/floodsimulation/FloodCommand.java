@@ -26,7 +26,6 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
 
         plugin.getCommand("flood").setExecutor(this);
 
-
     }
 
     @Override
@@ -56,6 +55,10 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
             else if (args[0].equalsIgnoreCase("visualise")) {
                 sender.sendMessage("\u00A79Flood>\u00A7f Showing region data.");
                 plugin.floodTracker.visualise();
+            }
+            else if (args[0].equalsIgnoreCase("debug")) {
+                sender.sendMessage("\u00A79Flood>\u00A7f Now displaying debug messages.");
+                plugin.floodTracker.debug = true;
             }
             else if (args[0].equalsIgnoreCase("simulate") || args[0].equalsIgnoreCase("start")) {
                 if(!plugin.floodTracker.start()){

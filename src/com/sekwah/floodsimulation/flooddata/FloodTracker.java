@@ -44,10 +44,10 @@ public class FloodTracker {
 
     private float waterThreshold = 100f / 8f;
 
-    private boolean debug = true;
+    public boolean debug = true;
 
     // Update frequency in ticks(Keep tracked to the world).
-    private int updateFrequency = 4;
+    private int updateFrequency = 40;
 
     /**
      * Stores if the plugin is simulating but other than it tracking the code it is used as a trigger to block changes
@@ -329,16 +329,23 @@ public class FloodTracker {
 
 
     /**
+     * Maybe recode to an async while loop or find an event that updates every game tick to see if it should update again.
+     * It would remove the possibility of some sort of recursive call issue.
+     *
      * Updates all the water
      * @return if there are changes made.
      */
     public boolean update(){
 
-        plugin.getLogger().info("Flood Update");
+        if(debug) plugin.getLogger().info("Flood Update Call");
+
+        if(debug) plugin.getLogger().info("------  Updating blocks  ------");
 
         updateFloodSource();
 
         updateBlocks();
+
+        if(debug) plugin.getLogger().info("------  Done updating blocks  ------");
 
         plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
             @Override
@@ -346,6 +353,9 @@ public class FloodTracker {
                 simulateWater();
 
                 long tickDelay = updateFrequency - (lastUpdateTick - currentWorld.getFullTime());
+                lastUpdateTick = currentWorld.getFullTime();
+
+                if(debug) plugin.getLogger().info("Delay: " + tickDelay);
 
                 if(tickDelay > 0){
                     plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
@@ -453,6 +463,8 @@ public class FloodTracker {
         Block below = block.getRelative(BlockFace.DOWN);
         float flow = flowToBlock(below, waterData.level, true, waterData.inactiveTicks);
         waterData.change(-flow);
+
+        if(debug) plugin.getLogger().info("Updating block");
 
         Block[] sideBlocks = {block.getRelative(BlockFace.NORTH),block.getRelative(BlockFace.SOUTH),block.getRelative(BlockFace.EAST),
             block.getRelative(BlockFace.WEST)};
