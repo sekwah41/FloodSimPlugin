@@ -372,7 +372,7 @@ public class FloodTracker {
                 if(debug) plugin.getLogger().info("Delay: " + tickDelay);
 
                 if(tickDelay > 0){
-                    plugin.getLogger().warning("Server could not simulate within the update time.");
+                    if(debug) plugin.getLogger().warning("Server could not simulate within the update time.");
                     plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
                         @Override
                         public void run() {
