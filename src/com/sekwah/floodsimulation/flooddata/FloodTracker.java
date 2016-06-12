@@ -26,6 +26,8 @@ import java.util.*;
  * Has details on checking the server time.
  * https://bukkit.org/threads/solved-counting-ticks.44950/
  *
+ * Need to be more careful about how the variables reference back to the origional.
+ *
  * @author sekwah41
  */
 public class FloodTracker {
@@ -44,10 +46,10 @@ public class FloodTracker {
 
     private float waterThreshold = 100f / 8f;
 
-    public boolean debug = true;
+    public boolean debug = false;
 
     // Update frequency in ticks(Keep tracked to the world).
-    private int updateFrequency = 40;
+    private int updateFrequency = 4;
 
     /**
      * Stores if the plugin is simulating but other than it tracking the code it is used as a trigger to block changes
@@ -58,7 +60,7 @@ public class FloodTracker {
 
     public boolean lockChanges = false;
 
-    private long lastUpdateTick = 0;
+    public long lastUpdateTick = 0;
 
     // Stops some blocks like glass breaking too easily.
     public float waterStartLevel = 98f;
@@ -306,7 +308,7 @@ public class FloodTracker {
             plugin.getServer().broadcastMessage("\u00A79Flood>\u00A7f Flood simulation started.");
             this.simulating = true;
             this.analyzeWater();
-            this.lastUpdateTick = currentWorld.getFullTime();
+            this.lastUpdateTick = getTimeTicks();
 
             update();
 
@@ -351,13 +353,26 @@ public class FloodTracker {
             @Override
             public void run() {
                 simulateWater();
+                if(debug) plugin.getLogger().info("lastUpdateTick: " + plugin.floodTracker.lastUpdateTick);
+                if(debug) plugin.getLogger().info("Time: " + getTimeTicks());
 
-                long tickDelay = updateFrequency - (lastUpdateTick - currentWorld.getFullTime());
-                lastUpdateTick = currentWorld.getFullTime();
+                // Timing function, finds how long the last update took, then calculates the time offset to the next
+
+                long tickOffset = getTimeTicks() - (plugin.floodTracker.lastUpdateTick + plugin.floodTracker.updateFrequency);
+
+                long tickDelay = updateFrequency - tickOffset;
+
+                if(tickDelay > 10){
+                    tickDelay = 4;
+                    tickOffset = 0;
+                }
+
+                plugin.floodTracker.lastUpdateTick = getTimeTicks() - tickOffset;
 
                 if(debug) plugin.getLogger().info("Delay: " + tickDelay);
 
                 if(tickDelay > 0){
+                    plugin.getLogger().warning("Server could not simulate within the update time.");
                     plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
                         @Override
                         public void run() {
@@ -409,6 +424,14 @@ public class FloodTracker {
         }
     }
 
+    /**
+     * Time since epoch in ticks :P
+     * @return
+     */
+    public long getTimeTicks(){
+        return System.currentTimeMillis() / 50l;
+    }
+
     public void updateBlocks() {
         Object[] activeWater = activeWaterBlocks.toArray();
         for(Object waterDataObj : activeWater){
@@ -447,7 +470,7 @@ public class FloodTracker {
             }
             else{
                 removeWater(waterData, block);
-                plugin.getLogger().info("A non water block seems to be in the water data.");
+                if(debug) plugin.getLogger().info("A non water block seems to be in the water data.");
             }
         }
     }
