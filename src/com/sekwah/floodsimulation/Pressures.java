@@ -53,6 +53,9 @@ public class Pressures {
         pressureValues.put(Material.THIN_GLASS, 80);
         pressureValues.put(Material.STAINED_GLASS, 99);
         pressureValues.put(Material.STAINED_GLASS_PANE, 80);
+
+        //TODO either remove this or add the rest of the doors.
+        pressureValues.put(Material.WOOD_DOOR, 99);
     }
 
 }

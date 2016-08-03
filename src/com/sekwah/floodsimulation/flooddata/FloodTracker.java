@@ -443,7 +443,7 @@ public class FloodTracker {
                 if(waterData.newBlock){
                     if(!isWater){
                         for(Player player: plugin.getServer().getOnlinePlayers()){
-                            plugin.nmsAccess.sendBlockBreakParticles(player, block.getType(), block.getLocation());
+                            plugin.compat.sendBlockBreakParticles(player, block.getType(), block.getLocation());
                         }
                     }
                     block.setType(Material.STATIONARY_WATER);

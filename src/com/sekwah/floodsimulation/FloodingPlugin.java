@@ -1,11 +1,9 @@
 package com.sekwah.floodsimulation;
 
+import com.sekwah.floodsimulation.compat.CraftBukkit;
 import com.sekwah.floodsimulation.flooddata.FloodTracker;
-import com.sekwah.floodsimulation.compat.NMS;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created by on 29/03/2016.
@@ -22,9 +20,9 @@ public class FloodingPlugin extends JavaPlugin {
 
     public boolean debug = false;
 
-    public NMS nmsAccess;
-
     public FloodTracker floodTracker;
+
+    public CraftBukkit compat;
 
     public void onEnable(){
 
@@ -47,23 +45,14 @@ public class FloodingPlugin extends JavaPlugin {
         String version = packageSplit[packageSplit.length - 1];
 
         try {
-            Class<?> nmsClass = Class.forName("com.sekwah.floodsimulation.compat." + version);
-            if (NMS.class.isAssignableFrom(nmsClass)) {
-                this.nmsAccess = (NMS) nmsClass.getConstructor().newInstance();
-            } else {
-                this.getLogger().severe("Something went wrong, the version of bukkit seems to have an error with its compat file v:" + version);
-                this.setEnabled(false);
-            }
-            this.getLogger().info("Using compat file v:" + version);
+            this.compat = new CraftBukkit(this, version);
 
             this.getServer().getConsoleSender().sendMessage("\u00A7aFlood simulation has been enabled.");
-        } catch (ClassNotFoundException e) {
-            this.getLogger().severe("Something went wrong, the version of bukkit you are using does not seem to have a compat file v:" + version);
-            this.setEnabled(false);
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException |
-                NoSuchMethodException | SecurityException e) {
-            this.getLogger().severe("Something went wrong, the version of bukkit seems to have an error with its compat file v:" + version);
-             e.printStackTrace();
+        } catch (IllegalArgumentException |
+                NoSuchFieldException | SecurityException | NoSuchMethodException | ClassNotFoundException e) {
+            e.printStackTrace();
+            this.getLogger().warning("Something went wrong, please notify sekwah and tell him about this version v:" + version);
+            this.getLogger().warning("Along with the above stacktrace");
             this.setEnabled(false);
         }
     }

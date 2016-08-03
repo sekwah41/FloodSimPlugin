@@ -7,3 +7,4 @@ commands:
     flood:
         description: Main command that all flood tools are under.
         usage: /<command>
+        aliases: [floodsim]
