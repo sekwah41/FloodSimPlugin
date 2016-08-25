@@ -444,7 +444,8 @@ public class FloodTracker {
             FloodPos pos = waterData.pos;
             Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
             boolean isWater = block.getType() == Material.STATIONARY_WATER || block.getType() == Material.WATER;
-            if(waterData.inactiveTicks > 15) continue;
+            // TODO alter this value to try and get it to work properly
+            if(waterData.inactiveTicks > 10) continue;
             if(isWater || waterData.newBlock){
                 if(waterData.newBlock){
                     if(!isWater){
@@ -497,7 +498,7 @@ public class FloodTracker {
         Block below = block.getRelative(BlockFace.DOWN);
 
         // TODO replace this cheaty method.
-        float inflateAmount = 0.7f;
+        float inflateAmount = 0.5f;
 
         float flow = flowToBlock(below, waterData.level, true, waterData.inactiveTicks);
         if(flow > 0){
