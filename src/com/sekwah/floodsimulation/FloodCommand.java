@@ -59,11 +59,11 @@ public class FloodCommand implements CommandExecutor, TabCompleter {
             else if (args[0].equalsIgnoreCase("debug")) {
                 if(plugin.floodTracker.debug){
                     sender.sendMessage("\u00A79Flood>\u00A7f Now displaying debug messages.");
-                    plugin.floodTracker.debug = true;
+                    plugin.floodTracker.debug = false;
                 }
                 else{
                     sender.sendMessage("\u00A79Flood>\u00A7f No longer displaying debug messages.");
-                    plugin.floodTracker.debug = false;
+                    plugin.floodTracker.debug = true;
                 }
             }
             else if (args[0].equalsIgnoreCase("simulate") || args[0].equalsIgnoreCase("start")) {

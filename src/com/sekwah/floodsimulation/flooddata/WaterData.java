@@ -44,7 +44,7 @@ public class WaterData implements Comparable<WaterData> {
 
     @Override
     public int compareTo(WaterData waterData) {
-        return (int) (this.level - waterData.level);
+        return (int) Math.ceil(this.level - waterData.level);
     }
 
     public void change(float amount){
@@ -53,13 +53,13 @@ public class WaterData implements Comparable<WaterData> {
         }
         this.level += amount;
         hasChanged = true;
-        if(this.level > 50 && amount > 0.5){
-            inactiveTicks = 0;
+        if((this.level > 50.0F) && !(amount < 0.5D && amount > -0.5D)){
+            this.inactiveTicks = 0;
         }
     }
 
     public void change(){
-        hasChanged = true;
-        inactiveTicks = 0;
+        this.hasChanged = true;
+        this.inactiveTicks = 0;
     }
 }

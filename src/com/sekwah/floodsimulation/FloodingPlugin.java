@@ -10,6 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  *
  * TODO save the current area as a file or copy it somewhere else to revert it afterwards.
  *
+ * TODO detect source blocks and make their levels rise too.
+ *
  * @author sekwah41
  */
 public class FloodingPlugin extends JavaPlugin {

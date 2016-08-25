@@ -63,7 +63,7 @@ public class FloodTracker {
     public long lastUpdateTick = 0;
 
     // Stops some blocks like glass breaking too easily.
-    public float waterStartLevel = 98f;
+    public float waterStartLevel = 100f;
 
     /**
      * Percentage that flows into the next blow, e.g. 100 and 50 will have 12.5 flow into the next if it was 0.25f
@@ -454,14 +454,14 @@ public class FloodTracker {
                             plugin.compat.sendBlockBreakParticles(player, block.getType(), block.getLocation());
                         }
                     }
-                    block.setType(Material.STATIONARY_WATER);
+                    block.setType(Material.STATIONARY_WATER, false);
                     waterData.newBlock = false;
                 }
 
                 double waterLevel = 8 - Math.ceil(waterData.level / this.waterThreshold);
                 if(waterLevel >= 8){
                     //block.breakNaturally();
-                    block.setType(Material.AIR);
+                    block.setType(Material.AIR, false);
                     removeWater(waterData, block);
                 }
                 else {
@@ -492,7 +492,14 @@ public class FloodTracker {
         Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
         //Block blockBelow =
         Block below = block.getRelative(BlockFace.DOWN);
+
+        // TODO replace this cheaty method.
+        float inflateAmount = 1f;
+
         float flow = flowToBlock(below, waterData.level, true, waterData.inactiveTicks);
+        if(flow > 0){
+            flow *= inflateAmount;
+        }
         waterData.change(-flow);
 
         if(debug) plugin.getLogger().info("Updating block");
@@ -509,11 +516,15 @@ public class FloodTracker {
         for(int i = 0; i < 4; i++){
             if(waterData.level > 5){
                 flow = flowToBlock(sideBlocks[i], waterData.level, false, waterData.inactiveTicks);
+                // TODO make more efficient and maybe remove this cheaty flood code to be more realistic
+                if(flow > 0){
+                    flow *= inflateAmount;
+                }
                 waterData.change(-flow);
                 //waterData.level -= flow;
             }
-            else if(waterData.inactiveTicks > 50    /* && below.getType() != Material.STATIONARY_WATER*/){
-                waterData.level = 0;
+            else if(waterData.inactiveTicks > 50   /* && below.getType() != Material.STATIONARY_WATER*/){
+                waterData.level = 0.0f;
             }
             // System.out.println(i);
             //System.out.println(flow);
