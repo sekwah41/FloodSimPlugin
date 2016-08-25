@@ -12,6 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  *
  * TODO detect source blocks and make their levels rise too.
  *
+ * TODO convert the hashmap of blocks into a 3d array which is linear but using % and / to get the correct data directly.
+ * Would also make it so you dont have it flowing out of the area.
+ *
  * @author sekwah41
  */
 public class FloodingPlugin extends JavaPlugin {
