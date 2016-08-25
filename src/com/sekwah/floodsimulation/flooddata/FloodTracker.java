@@ -419,14 +419,11 @@ public class FloodTracker {
         for(int i = activeArray.length - 1; i >= 0; i--){
             WaterData waterData = floodData.get(activeArray[i]);
             if(waterData.level > 0){
-                while(true){
-                    try{
-                        updateBlock(waterData);
-                        break;
-                    }
-                    catch(IllegalStateException e){
-                        System.out.println("State Exeption");
-                    }
+                try{
+                    updateBlock(waterData);
+                }
+                catch(IllegalStateException e){
+                    System.out.println("State Exeption");
                 }
             }
         }
@@ -447,6 +444,7 @@ public class FloodTracker {
             FloodPos pos = waterData.pos;
             Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
             boolean isWater = block.getType() == Material.STATIONARY_WATER || block.getType() == Material.WATER;
+            if(waterData.inactiveTicks > 15) continue;
             if(isWater || waterData.newBlock){
                 if(waterData.newBlock){
                     if(!isWater){
@@ -490,11 +488,16 @@ public class FloodTracker {
     private void updateBlock(WaterData waterData) {
         FloodPos pos = waterData.pos;
         Block block = this.currentWorld.getBlockAt(pos.posX, pos.posY, pos.posZ);
+
+        if(waterData.inactiveTicks > 5){
+            return;
+        }
+
         //Block blockBelow =
         Block below = block.getRelative(BlockFace.DOWN);
 
         // TODO replace this cheaty method.
-        float inflateAmount = 1f;
+        float inflateAmount = 0.7f;
 
         float flow = flowToBlock(below, waterData.level, true, waterData.inactiveTicks);
         if(flow > 0){

@@ -53,7 +53,7 @@ public class WaterData implements Comparable<WaterData> {
         }
         this.level += amount;
         hasChanged = true;
-        if((this.level > 50.0F) && !(amount < 0.5D && amount > -0.5D)){
+        if((this.level < 50.0F) && !(amount < 0.5D && amount > -0.5D)){
             this.inactiveTicks = 0;
         }
     }
