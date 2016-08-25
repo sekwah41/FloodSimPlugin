@@ -419,7 +419,15 @@ public class FloodTracker {
         for(int i = activeArray.length - 1; i >= 0; i--){
             WaterData waterData = floodData.get(activeArray[i]);
             if(waterData.level > 0){
-                updateBlock(waterData);
+                while(true){
+                    try{
+                        updateBlock(waterData);
+                        break;
+                    }
+                    catch(IllegalStateException e){
+                        System.out.println("State Exeption");
+                    }
+                }
             }
         }
     }
@@ -490,7 +498,7 @@ public class FloodTracker {
         if(debug) plugin.getLogger().info("Updating block");
 
         Block[] sideBlocks = {block.getRelative(BlockFace.NORTH),block.getRelative(BlockFace.SOUTH),block.getRelative(BlockFace.EAST),
-            block.getRelative(BlockFace.WEST)};
+                block.getRelative(BlockFace.WEST)};
 
         /*WaterData[] waterDataSides = new WaterData[4];
 
@@ -504,10 +512,10 @@ public class FloodTracker {
                 waterData.change(-flow);
                 //waterData.level -= flow;
             }
-            else if(waterData.inactiveTicks > 10/* && below.getType() != Material.STATIONARY_WATER*/){
+            else if(waterData.inactiveTicks > 50    /* && below.getType() != Material.STATIONARY_WATER*/){
                 waterData.level = 0;
             }
-           // System.out.println(i);
+            // System.out.println(i);
             //System.out.println(flow);
         }
 
@@ -568,8 +576,8 @@ public class FloodTracker {
         else{
             float flowAmount = (amount - waterData.level) * flowRatio;
             //if(flowAmount > 5){
-                waterData.change(flowAmount);
-                return flowAmount;
+            waterData.change(flowAmount);
+            return flowAmount;
             //}
         }
         //return 0;
