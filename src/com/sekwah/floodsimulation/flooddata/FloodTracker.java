@@ -78,7 +78,12 @@ public class FloodTracker {
 
     private List<FloodSource> floodSources = new ArrayList<FloodSource>();
 
-    private Map<Block, WaterData> floodData = new HashMap<Block, WaterData>();
+    /**
+     * Change to a linear array created on start.
+     */
+    // private Map<Block, WaterData> floodData = new HashMap<Block, WaterData>();
+
+    private WaterData[] floodData = null;
 
     private List<WaterData> activeWaterBlocks = new ArrayList<WaterData>();
 
@@ -240,6 +245,11 @@ public class FloodTracker {
     public boolean analyzeWater(){
         // Return false if no water flood sources are calculated.
 
+        int xSize = this.regionPoints[1].posX - this.regionPoints[0].posX;
+        int zSize = this.regionPoints[1].posZ - this.regionPoints[0].posZ;
+
+        this.floodData = new WaterData[this.currentWorld.getMaxHeight() * xSize * zSize];
+
         int worldHeight = this.currentWorld.getMaxHeight();
         for(int x = this.regionPoints[0].posX; x <= this.regionPoints[1].posX; x++){
             for(int z = this.regionPoints[0].posZ; z <= this.regionPoints[1].posZ; z++){
@@ -277,7 +287,7 @@ public class FloodTracker {
     }
 
     public WaterData addWater(FloodPos pos, float level, Block block){
-        WaterData waterData = floodData.get(block);
+        WaterData waterData = floodata.get(block);
         if(waterData == null){
             waterData = new WaterData(pos, level);
             floodData.put(block, waterData);
@@ -297,6 +307,16 @@ public class FloodTracker {
     public void removeWater(WaterData waterData, Block block){
         activeWaterBlocks.remove(waterData);
         floodData.remove(block);
+    }
+
+    /**
+     * Use the first chunk pos as the base location as it cant change while simulating.
+     * @param pos
+     * @return
+     */
+    public WaterData getWaterSource(FloodPos pos){
+        if(this.floodData.length <= pos.posX * pos.posY * pos.posZ);
+        return null;
     }
 
     /**
@@ -494,7 +514,8 @@ public class FloodTracker {
         Block below = block.getRelative(BlockFace.DOWN);
 
         // TODO replace this cheaty method.
-        float inflateAmount = 1f;
+        // Multiplies the amount removed from a block. e.g. 0.7 would cause reductions to happen 30% slower
+        float inflateAmount = 0.7f;
 
         float flow = flowToBlock(below, waterData.level, true, waterData.inactiveTicks);
         if(flow > 0){
